@@ -946,7 +946,7 @@ func (p *parser) parseImportDecl() *astImportSpec {
 func (p *parser) tryVarType(ellipsisOK bool) *astExpr {
 	if ellipsisOK && p.tok.tok == "..." {
 		p.next() // consume "..."
-		var typ = tryIdentOrType()
+		var typ = p.tryIdentOrType()
 		if typ != nil {
 			parserResolve(typ)
 		} else {
@@ -960,7 +960,7 @@ func (p *parser) tryVarType(ellipsisOK bool) *astExpr {
 			},
 		}
 	}
-	return tryIdentOrType()
+	return p.tryIdentOrType()
 }
 
 func (p *parser) parseVarType(ellipsisOK bool) *astExpr {
@@ -975,7 +975,7 @@ func (p *parser) parseVarType(ellipsisOK bool) *astExpr {
 
 func (p *parser) tryType() *astExpr {
 	logf(" [%s] begin\n", __func__)
-	var typ = tryIdentOrType()
+	var typ = p.tryIdentOrType()
 	if typ != nil {
 		parserResolve(typ)
 	}
@@ -1068,7 +1068,7 @@ func (p *parser) parseTypeName() *astExpr {
 	}
 }
 
-func tryIdentOrType() *astExpr {
+func (p *parser) tryIdentOrType() *astExpr {
 	logf(" [%s] begin\n", __func__)
 	switch p.tok.tok {
 	case "IDENT":
@@ -1325,7 +1325,7 @@ func parseOperand() *astExpr {
 		}
 	}
 
-	var typ = tryIdentOrType()
+	var typ = p.tryIdentOrType()
 	if typ == nil {
 		panic2(__func__, "# typ should not be nil\n")
 	}
@@ -4443,7 +4443,7 @@ func lookupMethod(rcvT *Type, methodName *astIdent) *Func {
 		}
 	}
 
-	panic("method not found")
+	panic("method not found: " + methodName.Name)
 	var r *Func
 	return r
 }

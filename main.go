@@ -4702,10 +4702,7 @@ func walk(pkgContainer *PkgContainer, file *astFile) {
 				//logf("   field.Type=%#v\n", field.Type)
 			}
 			if funcDecl.Body != nil {
-				var stmt *astStmt
-				for _, stmt = range funcDecl.Body.List {
-					walkStmt(stmt)
-				}
+				logf(" [sema] @@@ has body %s ==\n", funcDecl.Name.Name)
 				var fnc = &Func{}
 				fnc.name = funcDecl.Name.Name
 				fnc.funcType =  funcDecl.Type
@@ -4723,7 +4720,13 @@ func walk(pkgContainer *PkgContainer, file *astFile) {
 			panic2(__func__, "TBI: "+decl.dtype)
 		}
 	}
-
+	var fnc *Func
+	for _, fnc = range pkgContainer.funcs {
+		var stmt *astStmt
+		for _, stmt = range fnc.Body.List {
+			walkStmt(stmt)
+		}
+	}
 	if len(stringLiterals) == 0 {
 		panic2(__func__, "stringLiterals is empty\n")
 	}

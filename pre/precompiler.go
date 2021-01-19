@@ -2004,6 +2004,7 @@ func getTypeOfExpr(expr ast.Expr) *Type {
 				// method call
 				xType := getTypeOfExpr(fn.X)
 				method := lookupMethod(xType, fn.Sel)
+				assert(len(method.funcType.Results.List) == 1, "func is expected to return a single value")
 				return e2t(method.funcType.Results.List[0].Type)
 			}
 			throw(fmt.Sprintf("%#v, %#v\n", xIdent, fn.Sel))

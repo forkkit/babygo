@@ -844,7 +844,7 @@ func readSource(filename string) []uint8 {
 	return readFile(filename)
 }
 
-func parserInit(src []uint8) {
+func (p *parser) init(src []uint8) {
 	scannerInit(p.scanner, src)
 	parserNext()
 }
@@ -872,16 +872,16 @@ func closeScope() {
 	p.topScope = p.topScope.Outer
 }
 
-func parserConsumeComment() {
-	parserNext0()
+func (p *parser) consumeComment() {
+	p.next0()
 }
 
-func parserNext0() {
+func (p *parser) next0() {
 	p.tok = scannerScan(p.scanner)
 }
 
 func parserNext() {
-	parserNext0()
+	p.next0()
 	if p.tok.tok == ";" {
 		logf(" [parser] pointing at : \"%s\" newline (%s)\n", p.tok.tok, Itoa(p.scanner.offset))
 	} else if p.tok.tok == "IDENT" {
@@ -892,7 +892,7 @@ func parserNext() {
 
 	if p.tok.tok == "COMMENT" {
 		for p.tok.tok == "COMMENT" {
-			parserConsumeComment()
+			p.consumeComment()
 		}
 	}
 }
@@ -932,7 +932,7 @@ func parseIdent() *astIdent {
 	}
 }
 
-func parserImportDecl() *astImportSpec {
+func (p *parser) parseImportDecl() *astImportSpec {
 	parserExpect("import", __func__)
 	var path = p.tok.lit
 	parserNext()
@@ -2054,7 +2054,7 @@ func parserTypeSpec() *astSpec {
 	return r
 }
 
-func parserValueSpec(keyword string) *astSpec {
+func (p *parser) parseValueSpec(keyword string) *astSpec {
 	logf(" [parserValueSpec] start\n")
 	parserExpect(keyword, __func__)
 	var ident = parseIdent()
@@ -2085,7 +2085,7 @@ func parserValueSpec(keyword string) *astSpec {
 	return r
 }
 
-func parserFuncDecl() *astDecl {
+func (p *parser) parseFuncDecl() *astDecl {
 	parserExpect("func", __func__)
 	var scope = astNewScope(p.topScope) // function scope
 	var receivers *astFieldList
@@ -2130,7 +2130,7 @@ func parserFuncDecl() *astDecl {
 	return decl
 }
 
-func parserFile() *astFile {
+func (p *parser) parseFile() *astFile {
 	// expect "package" keyword
 	parserExpect("package", __func__)
 	p.unresolved = nil
@@ -2142,7 +2142,7 @@ func parserFile() *astFile {
 	p.pkgScope = p.topScope
 
 	for p.tok.tok == "import" {
-		parserImportDecl()
+		p.parseImportDecl()
 	}
 
 	logf("\n")
@@ -2153,7 +2153,7 @@ func parserFile() *astFile {
 	for p.tok.tok != "EOF" {
 		switch p.tok.tok {
 		case "var", "const":
-			var spec = parserValueSpec(p.tok.tok)
+			var spec = p.parseValueSpec(p.tok.tok)
 			var genDecl = &astGenDecl{}
 			genDecl.Spec = spec
 			decl = &astDecl{}
@@ -2161,7 +2161,7 @@ func parserFile() *astFile {
 			decl.genDecl = genDecl
 		case "func":
 			logf("\n\n")
-			decl = parserFuncDecl()
+			decl = p.parseFuncDecl()
 			logf(" func decl parsed:%s\n", decl.funcDecl.Name.Name)
 		case "type":
 			var spec = parserTypeSpec()
@@ -2215,8 +2215,8 @@ func parseFile(filename string) *astFile {
 
 	p = &parser{}
 	p.scanner = &scanner{}
-	parserInit(text)
-	return parserFile()
+	p.init(text)
+	return p.parseFile()
 }
 
 // --- codegen ---
@@ -4020,6 +4020,11 @@ func getTypeOfExpr(expr *astExpr) *Type {
 			}
 		case "*astArrayType":
 			return e2t(fun)
+		case "*astSelectorExpr": // (X).Sel()
+			var xType = getTypeOfExpr(fun.selectorExpr.X)
+			var method = lookupMethod(xType, fun.selectorExpr.Sel)
+			assert(len(method.funcType.Results.List) == 1, "func is expected to return a single value", __func__)
+			return e2t(method.funcType.Results.List[0].Type)
 		default:
 			panic2(__func__, "[astCallExpr] dtype="+expr.callExpr.Fun.dtype)
 		}

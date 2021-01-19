@@ -983,14 +983,14 @@ func (p *parser) tryType() *astExpr {
 	return typ
 }
 
-func parseType() *astExpr {
+func (p *parser) parseType() *astExpr {
 	var typ = p.tryType()
 	return typ
 }
 
-func parsePointerType() *astExpr {
+func (p *parser) parsePointerType() *astExpr {
 	p.expect("*", __func__)
-	var base = parseType()
+	var base = p.parseType()
 	return &astExpr{
 		dtype: "*astStarExpr",
 		starExpr : &astStarExpr{
@@ -1006,7 +1006,7 @@ func parseArrayType() *astExpr {
 		ln = parseRhs()
 	}
 	p.expect("]", __func__)
-	var elt = parseType()
+	var elt = p.parseType()
 
 	var r = &astExpr{
 		dtype : "*astArrayType",
@@ -1078,10 +1078,10 @@ func tryIdentOrType() *astExpr {
 	case "struct":
 		return parseStructType()
 	case "*":
-		return parsePointerType()
+		return p.parsePointerType()
 	case "(":
 		p.next()
-		var _typ = parseType()
+		var _typ = p.parseType()
 		p.expect(")", __func__)
 		return &astExpr{
 			dtype: "*astParenExpr",
@@ -2006,7 +2006,7 @@ func parseDecl(keyword string) *astGenDecl {
 	case "var":
 		p.expect(keyword, __func__)
 		var ident = p.parseIdent()
-		var typ = parseType()
+		var typ = p.parseType()
 		var value *astExpr
 		if p.tok.tok == "=" {
 			p.next()
@@ -2045,7 +2045,7 @@ func parserTypeSpec() *astSpec {
 	objDecl.dtype = "*astTypeSpec"
 	objDecl.typeSpec = spec
 	declare(objDecl, p.topScope, astTyp, ident)
-	var typ = parseType()
+	var typ = p.parseType()
 	p.expectSemi(__func__)
 	spec.Type = typ
 	var r = &astSpec{}
@@ -2059,7 +2059,7 @@ func (p *parser) parseValueSpec(keyword string) *astSpec {
 	p.expect(keyword, __func__)
 	var ident = p.parseIdent()
 	logf(" var = %s\n", ident.Name)
-	var typ = parseType()
+	var typ = p.parseType()
 	var value *astExpr
 	if p.tok.tok == "=" {
 		p.next()

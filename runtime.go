@@ -103,13 +103,17 @@ func makeSlice8(elmSize int, slen int, scap int) []int
 func makeSlice16(elmSize int, slen int, scap int) []string
 func makeSlice24(elmSize int, slen int, scap int) [][]int
 
+func nop0() {}
+func nop1() {}
+func nop2() {}
+
 func append1(old []uint8, elm uint8) (uintptr, int, int) {
 	var new_ []uint8
 	var elmSize int = 1
 
 	var oldlen int = len(old)
 	var newlen int = oldlen + 1
-
+	nop0()
 	if cap(old) >= newlen {
 		new_ = old[0:newlen]
 	} else {
@@ -119,13 +123,14 @@ func append1(old []uint8, elm uint8) (uintptr, int, int) {
 		} else {
 			newcap = oldlen * 2
 		}
+		nop1()
 		new_ = makeSlice1(elmSize, newlen, newcap)
 		var oldSize int = oldlen * elmSize
 		if oldlen > 0 {
 			memcopy(uintptr(unsafe.Pointer(&old[0])), uintptr(unsafe.Pointer(&new_[0])), oldSize)
 		}
 	}
-
+	nop2()
 	new_[oldlen] = elm
 	return uintptr(unsafe.Pointer(&new_[0])), newlen, cap(new_)
 }

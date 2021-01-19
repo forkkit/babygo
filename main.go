@@ -999,7 +999,7 @@ func (p *parser) parsePointerType() *astExpr {
 	}
 }
 
-func parseArrayType() *astExpr {
+func (p *parser) parseArrayType() *astExpr {
 	p.expect("[", __func__)
 	var ln *astExpr
 	if p.tok.tok != "]" {
@@ -1018,7 +1018,7 @@ func parseArrayType() *astExpr {
 	return r
 }
 
-func parseFieldDecl(scope *astScope) *astField {
+func (p *parser) parseFieldDecl(scope *astScope) *astField {
 
 	var varType = p.parseVarType(false)
 	var typ = p.tryVarType(false)
@@ -1034,7 +1034,7 @@ func parseFieldDecl(scope *astScope) *astField {
 	return field
 }
 
-func parseStructType() *astExpr {
+func (p *parser) parseStructType() *astExpr {
 	p.expect("struct", __func__)
 	p.expect("{", __func__)
 
@@ -1043,7 +1043,7 @@ func parseStructType() *astExpr {
 
 	var list []*astField
 	for p.tok.tok == "IDENT" || p.tok.tok == "*" {
-		var field *astField = parseFieldDecl(scope)
+		var field *astField = p.parseFieldDecl(scope)
 		list = append(list, field)
 	}
 	p.expect("}", __func__)
@@ -1074,9 +1074,9 @@ func tryIdentOrType() *astExpr {
 	case "IDENT":
 		return parseTypeName()
 	case "[":
-		return parseArrayType()
+		return p.parseArrayType()
 	case "struct":
-		return parseStructType()
+		return p.parseStructType()
 	case "*":
 		return p.parsePointerType()
 	case "(":

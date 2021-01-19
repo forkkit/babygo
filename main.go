@@ -973,7 +973,7 @@ func (p *parser) parseVarType(ellipsisOK bool) *astExpr {
 	return typ
 }
 
-func tryType() *astExpr {
+func (p *parser) tryType() *astExpr {
 	logf(" [%s] begin\n", __func__)
 	var typ = tryIdentOrType()
 	if typ != nil {
@@ -984,7 +984,7 @@ func tryType() *astExpr {
 }
 
 func parseType() *astExpr {
-	var typ = tryType()
+	var typ = p.tryType()
 	return typ
 }
 
@@ -1200,7 +1200,7 @@ func parserResult(scope *astScope) *astFieldList {
 		var _r *astFieldList = nil
 		return _r
 	}
-	var typ = tryType()
+	var typ = p.tryType()
 	var list []*astField
 	list = append(list, &astField{
 		Type: typ,

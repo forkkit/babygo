@@ -1058,7 +1058,7 @@ func (p *parser) parseStructType() *astExpr {
 	}
 }
 
-func parseTypeName() *astExpr {
+func (p *parser) parseTypeName() *astExpr {
 	logf(" [%s] begin\n", __func__)
 	var ident = p.parseIdent()
 	logf(" [%s] end\n", __func__)
@@ -1072,7 +1072,7 @@ func tryIdentOrType() *astExpr {
 	logf(" [%s] begin\n", __func__)
 	switch p.tok.tok {
 	case "IDENT":
-		return parseTypeName()
+		return p.parseTypeName()
 	case "[":
 		return p.parseArrayType()
 	case "struct":
